@@ -21,18 +21,22 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false} forcedTheme="light">
-      <LanguageProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <Suspense fallback={
-              <div className="min-h-screen flex items-center justify-center bg-background">
-                <div className="animate-pulse text-primary font-pathway">Loading...</div>
-              </div>
-            }>
+      <BrowserRouter>
+        <LanguageProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <Suspense
+              fallback={
+                <div className="min-h-screen flex items-center justify-center bg-background">
+                  <div className="animate-pulse text-primary font-pathway">Loading...</div>
+                </div>
+              }
+            >
               <Routes>
                 <Route path="/" element={<Index />} />
+                <Route path="/en" element={<Index />} />
+                <Route path="/pt" element={<Index />} />
                 <Route path="/demo" element={<Demo />} />
                 <Route path="/terms-of-service" element={<TermsOfService />} />
                 <Route path="/privacy-policy" element={<PrivacyPolicy />} />
@@ -42,9 +46,9 @@ const App = () => (
               </Routes>
               <CookieConsent />
             </Suspense>
-          </BrowserRouter>
-        </TooltipProvider>
-      </LanguageProvider>
+          </TooltipProvider>
+        </LanguageProvider>
+      </BrowserRouter>
     </ThemeProvider>
   </QueryClientProvider>
 );
