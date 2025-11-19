@@ -1,6 +1,7 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { ReactNode, createContext, useContext, useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 
-type Language = "en" | "pt";
+type Language = "en" | "pt-BR";
 type TranslationNode = Record<string, unknown>;
 
 const isTranslationNode = (value: unknown): value is TranslationNode =>
@@ -27,20 +28,123 @@ interface LanguageProviderProps {
   children: ReactNode;
 }
 
-const STORAGE_KEY = "loyaltify-language";
+type LocationLike = Pick<Location, "pathname" | "search">;
+
+const STORAGE_KEY = "loyaltify_lang";
+const LEGACY_STORAGE_KEY = "loyaltify-language";
+
+const normalizeLanguage = (value: string | null): Language | null => {
+  if (!value) {
+    return null;
+  }
+
+  const normalized = value.toLowerCase();
+  if (normalized === "en") {
+    return "en";
+  }
+  if (normalized === "pt" || normalized === "pt-br") {
+    return "pt-BR";
+  }
+  return null;
+};
+
+const getStoredLanguage = (): Language | null => {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  const stored = normalizeLanguage(window.localStorage.getItem(STORAGE_KEY));
+  if (stored) {
+    return stored;
+  }
+
+  const legacy = normalizeLanguage(window.localStorage.getItem(LEGACY_STORAGE_KEY));
+  if (legacy) {
+    window.localStorage.removeItem(LEGACY_STORAGE_KEY);
+    window.localStorage.setItem(STORAGE_KEY, legacy);
+    return legacy;
+  }
+
+  return null;
+};
+
+const getLanguageFromUrl = (location?: LocationLike): Language | null => {
+  if (typeof window === "undefined" && !location) {
+    return null;
+  }
+
+  const target = location ?? window.location;
+  const path = target.pathname.toLowerCase();
+
+  if (path === "/en" || path.startsWith("/en/")) {
+    return "en";
+  }
+
+  if (path === "/pt" || path.startsWith("/pt/")) {
+    return "pt-BR";
+  }
+
+  const params = new URLSearchParams(target.search);
+  const urlLang = normalizeLanguage(params.get("lang"));
+  return urlLang;
+};
+
+const getBrowserLanguage = (): Language | null => {
+  if (typeof navigator === "undefined") {
+    return null;
+  }
+
+  const locales = navigator.languages?.length ? navigator.languages : navigator.language ? [navigator.language] : [];
+  if (!locales.length) {
+    return null;
+  }
+
+  return locales.some((locale) => locale?.toLowerCase().startsWith("pt")) ? "pt-BR" : "en";
+};
+
+const cleanLangSearch = (search: string) => {
+  if (!search) {
+    return "";
+  }
+
+  const params = new URLSearchParams(search);
+  if (!params.has("lang")) {
+    return search;
+  }
+
+  params.delete("lang");
+  const next = params.toString();
+  return next ? `?${next}` : "";
+};
+
+const detectInitialLanguage = (): Language => {
+  const stored = getStoredLanguage();
+  if (stored) {
+    return stored;
+  }
+
+  const urlLang = getLanguageFromUrl();
+  if (urlLang) {
+    return urlLang;
+  }
+
+  return getBrowserLanguage() ?? "en";
+};
 
 export const LanguageProvider = ({ children }: LanguageProviderProps) => {
-  const [language, setLanguage] = useState<Language>(() => {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    return (stored === "pt" || stored === "en") ? stored : "en";
-  });
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [language, setLanguageState] = useState<Language>(() => (typeof window === "undefined" ? "en" : detectInitialLanguage()));
   const [isTransitioning, setIsTransitioning] = useState(false);
 
   const handleSetLanguage = (lang: Language) => {
+    if (lang === language) {
+      return;
+    }
+
     setIsTransitioning(true);
     setTimeout(() => {
-      setLanguage(lang);
-      localStorage.setItem(STORAGE_KEY, lang);
+      setLanguageState(lang);
       setTimeout(() => setIsTransitioning(false), 50);
     }, 150);
   };
@@ -60,6 +164,36 @@ export const LanguageProvider = ({ children }: LanguageProviderProps) => {
 
     return typeof value === "string" ? value : key;
   };
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+    window.localStorage.setItem(STORAGE_KEY, language);
+    window.localStorage.removeItem(LEGACY_STORAGE_KEY);
+  }, [language]);
+
+  useEffect(() => {
+    if (typeof document === "undefined") {
+      return;
+    }
+    document.documentElement.lang = language;
+  }, [language]);
+
+  useEffect(() => {
+    const path = location.pathname.toLowerCase();
+    const isLocalizedHome = path === "/" || path === "/en" || path === "/pt";
+    if (!isLocalizedHome) {
+      return;
+    }
+
+    const targetPath = language === "en" ? "/en" : "/";
+    const sanitizedSearch = cleanLangSearch(location.search);
+
+    if (path !== targetPath || sanitizedSearch !== location.search) {
+      navigate(`${targetPath}${sanitizedSearch}`, { replace: true });
+    }
+  }, [language, location.pathname, location.search, navigate]);
 
   return (
     <LanguageContext.Provider value={{ language, setLanguage: handleSetLanguage, t, isTransitioning }}>
@@ -400,7 +534,7 @@ const translations = {
       },
     },
   },
-  pt: {
+  "pt-BR": {
     header: {
       features: "Recursos",
       solutions: "Soluções",
