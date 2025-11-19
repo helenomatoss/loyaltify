@@ -62,7 +62,7 @@ const Hero = () => {
           <div className="relative">
             {/* Main Headline */}
             <h1
-            className="text-5xl md:text-7xl font-bold mb-6 font-pathway animate-fade-in"
+            className="text-5xl md:text-7xl font-bold leading-snug md:leading-[1.15] mb-6 font-pathway animate-fade-in"
             style={{
               background: 'linear-gradient(135deg, #FFFFFF 0%, #00DF88 100%)',
               WebkitBackgroundClip: 'text',
