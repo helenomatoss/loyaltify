@@ -23,9 +23,9 @@ const DemoHeader = () => {
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2 bg-muted rounded-full p-1">
               <button
-                onClick={() => setLanguage("pt")}
+                onClick={() => setLanguage("pt-BR")}
                 className={`flex items-center gap-1 px-3 py-1.5 rounded-full transition-all duration-300 ease-in-out ${
-                  language === "pt" ? "bg-primary text-primary-foreground shadow-md scale-105" : "hover:bg-background/50"
+                  language === "pt-BR" ? "bg-primary text-primary-foreground shadow-md scale-105" : "hover:bg-background/50"
                 }`}
                 title="Português (Brasil)"
               >
