@@ -93,7 +93,12 @@ const Hero = () => {
 
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center animate-fade-in">
-              <Button variant="hero" size="lg" className="group" asChild>
+              <Button
+                variant="hero"
+                size="lg"
+                className="group xl:h-11 xl:px-6 2xl:h-12 2xl:px-8"
+                asChild
+              >
                 <a href="/demo">
                   {t("hero.bookDemo")}
                   <ArrowRight className="group-hover:translate-x-1 transition-transform" />
