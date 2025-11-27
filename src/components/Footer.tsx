@@ -105,19 +105,19 @@ const Footer = () => {
             <ul className="space-y-4">
               <li className="flex items-start gap-3 text-sm text-muted-foreground font-pathway">
                 <Mail className="w-4 h-4 mt-0.5 text-primary flex-shrink-0" />
-                <a href="mailto:info@loyaltify.com" className="hover:text-primary transition-colors">
-                  info@loyaltify.com
+                <a href="mailto:info@loyaltify.ca" className="hover:text-primary transition-colors">
+                  info@loyaltify.ca
                 </a>
               </li>
               <li className="flex items-start gap-3 text-sm text-muted-foreground font-pathway">
                 <Phone className="w-4 h-4 mt-0.5 text-primary flex-shrink-0" />
-                <a href="tel:+1234567890" className="hover:text-primary transition-colors">
-                  +1 (234) 567-890
+                <a href="tel:+14372629343" className="hover:text-primary transition-colors">
+                  +1 (437) 262-9343
                 </a>
               </li>
               <li className="flex items-start gap-3 text-sm text-muted-foreground font-pathway">
                 <MapPin className="w-4 h-4 mt-0.5 text-primary flex-shrink-0" />
-                <span>San Francisco, CA</span>
+                <span>Toronto, ON</span>
               </li>
             </ul>
           </div>
