@@ -1,3 +1,4 @@
+import type { FormEvent } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -68,29 +69,54 @@ const DemoForm = () => {
     },
   });
 
-  const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    // Track form start
-    trackEvent("form_submit_attempt", {
-      form_name: "demo_request",
+  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formElement = e.currentTarget;
+
+    const submitHandler = form.handleSubmit((_, event) => {
+      trackEvent("form_submit_attempt", {
+        form_name: "demo_request",
+      });
+
+      const currentForm = (event?.currentTarget as HTMLFormElement | null) ?? formElement;
+      const data = new FormData(currentForm);
+
+      const firstName = String(data.get("firstName") ?? "");
+      const lastName = String(data.get("lastName") ?? "");
+      const email = String(data.get("email") ?? "");
+      const company = String(data.get("company") ?? "");
+      const locations = String(data.get("locations") ?? "");
+
+      const subject = encodeURIComponent("Nova solicitação de demonstração - Loyaltify");
+      const body = encodeURIComponent(
+        [
+          `${t("demo.form.firstName")}: ${firstName}`,
+          `${t("demo.form.lastName")}: ${lastName}`,
+          `${t("demo.form.workEmail")}: ${email}`,
+          `${t("demo.form.company")}: ${company}`,
+          `${t("demo.form.locations")}: ${locations}`,
+        ].join("\n"),
+      );
+
+      const mailtoLink = `mailto:info@loyaltify.ca?subject=${subject}&body=${body}`;
+
+      trackEvent("generate_lead", {
+        currency: "CAD",
+        value: 1000,
+      });
+
+      trackConversion("demo_form_submission");
+
+      toast({
+        title: t("demo.form.success.title"),
+        description: t("demo.form.success.description"),
+      });
+
+      form.reset();
+      window.location.href = mailtoLink;
     });
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-
-    // Track successful conversion
-    trackEvent("generate_lead", {
-      currency: "CAD",
-      value: 1000,
-    });
-    
-    trackConversion("demo_form_submission");
-
-    toast({
-      title: t("demo.form.success.title"),
-      description: t("demo.form.success.description"),
-    });
-
-    form.reset();
+    return submitHandler(e);
   };
 
   return (
@@ -103,7 +129,7 @@ const DemoForm = () => {
       </div>
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+        <form onSubmit={handleSubmit} className="space-y-5">
           {/* First Name */}
           <FormField
             control={form.control}
